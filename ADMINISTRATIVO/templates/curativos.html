@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/curativos.css">
+  <title>CURATIVOS</title>
+</head>
+<body>
+
+  <div class="barra-topo">
+    <header class="cabecalho">
+      <div class="cabecalho__conteudo">
+        <nav class="menu" aria-label="Menu principal">
+          <ul class="menu__lista">
+            <li><a href="administrativo.html">HOME</a></li>
+            <li><a href="curativos.html">CURATIVOS</a></li>
+            <li><a href="spe.html">SPE</a></li>
+            <li><a href="impressoras.html">IMPRESSORAS</a></li>
+            <li><a href="computadores.html">COMPUTADORES</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+  </div>
+
+  <main>
+    <section class="card">
+      <div class="card-header">
+        <h2>1. Buscar paciente</h2>
+        <button class="btn" id="btn-novo-paciente">+ Cadastrar paciente</button>
+      </div>
+
+      <div class="filtros-busca">
+        <input id="busca" class="search" type="text" placeholder="Nome ou CPF..." autocomplete="off">
+        <select id="filtro-programa" aria-label="Filtrar por programa">
+          <option value="">Todos os programas</option>
+          <option value="Curativo">Curativo</option>
+          <option value="Dieta">Dieta</option>
+          <option value="Cateterismo">Cateterismo</option>
+        </select>
+        <select id="filtro-equipe" aria-label="Filtrar por equipe">
+          <option value="">Todas as equipes</option>
+          <option value="Equipe Verde">Equipe Verde</option>
+          <option value="Equipe Azul">Equipe Azul</option>
+          <option value="Equipe Amarela">Equipe Amarela</option>
+        </select>
+      </div>
+
+      <div id="resultados" class="results"></div>
+    </section>
+
+    <section class="card hidden" id="sec-paciente">
+      <h2>2. Materiais e período</h2>
+      <div class="sel">
+        <div>
+          <b id="p-nome"></b><br>
+          <span id="p-info"></span>
+        </div>
+        <div class="sel-acoes">
+          <button class="btn-icon" id="editar-selecionado" title="Editar cadastro do paciente" aria-label="Editar cadastro do paciente">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+              <circle cx="9" cy="10" r="2"></circle>
+              <path d="M6 16c0-1.7 1.3-3 3-3s3 1.3 3 3"></path>
+              <line x1="14" y1="9" x2="18" y2="9"></line>
+              <line x1="14" y1="13" x2="18" y2="13"></line>
+            </svg>
+          </button>
+          <button class="btn sec" id="trocar">Trocar paciente</button>
+        </div>
+      </div>
+
+      <input id="filtro" class="search" style="margin-top:14px;font-size:14px;padding:8px 10px" type="text" placeholder="Filtrar materiais...">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px"></th>
+            <th>Material</th>
+            <th>Un.</th>
+            <th>Estoque</th>
+            <th class="num">Qtd/mês</th>
+            <th class="num">Total</th>
+            <th style="width:42px"></th>
+          </tr>
+        </thead>
+        <tbody id="tb-materiais"></tbody>
+      </table>
+
+      <details style="margin-top:12px">
+        <summary>+ Cadastrar novo material</summary>
+        <div class="row">
+          <label style="flex:1;min-width:200px">Nome *<input id="nm-nome" type="text"></label>
+          <label>Unidade<input id="nm-un" type="text" value="unid" style="width:90px"></label>
+          <label>Situação
+            <select id="nm-estoque" style="width:155px">
+              <option value="1">Disponível</option>
+              <option value="0">Sem estoque</option>
+            </select>
+          </label>
+          <button class="btn sec" id="nm-salvar">Adicionar</button>
+          <span id="nm-msg" class="msg"></span>
+        </div>
+      </details>
+
+      <div class="row">
+        <label>Meses a entregar<input id="meses" type="number" min="1" max="36" value="1" style="width:110px"></label>
+        <label>Data da entrega (opcional)<input id="data" type="date"></label>
+        <button class="btn sec" id="salvar-kit">Salvar como kit padrão do paciente</button>
+        <button class="btn" id="gerar">Gerar recibo (PDF)</button>
+      </div>
+      <div id="msg" class="msg"></div>
+    </section>
+  </main>
+
+  <!-- Modal Cadastro / Edição do Paciente -->
+  <div id="modal-paciente" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="modal-titulo">Cadastro simplificado do cidadão</span>
+        <button type="button" class="modal-close" id="modal-fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="np-id">
+        <div class="grid-modal">
+          <label class="col-span-2">Nome completo *<input id="np-nome" type="text" autocomplete="off"></label>
+          <label>Data de nascimento<input id="np-nascimento" type="date"></label>
+          <label>CPF<input id="np-cpf" type="text" placeholder="000.000.000-00"></label>
+          <label>Telefones<input id="np-tel" type="text" placeholder="(31) 99999-9999"></label>
+          <label>Equipe
+            <select id="np-equipe">
+              <option value="">Selecione</option>
+              <option value="Equipe Verde">Equipe Verde</option>
+              <option value="Equipe Azul">Equipe Azul</option>
+              <option value="Equipe Amarela">Equipe Amarela</option>
+            </select>
+          </label>
+          <label>Modalidade
+            <select id="np-programa">
+              <option value="Curativo">Curativo</option>
+              <option value="Dieta">Dieta</option>
+              <option value="Cateterismo">Cateterismo</option>
+            </select>
+          </label>
+          <label class="col-span-2">Endereço<input id="np-end" type="text"></label>
+        </div>
+        <div class="modal-footer">
+          <span id="np-msg" class="msg"></span>
+          <div class="modal-botoes">
+            <button type="button" class="btn danger hidden" id="np-excluir">Excluir paciente</button>
+            <button type="button" class="btn sec" id="modal-cancelar">Cancelar</button>
+            <button type="button" class="btn" id="np-salvar">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+const state = { paciente: null, materiais: [], kit: {}, listaPacientes: [] };
+
+function msg(el, text, kind) { el.textContent = text || ""; el.className = "msg " + (kind || ""); }
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  const j = r.headers.get("content-type")?.includes("json") ? await r.json() : null;
+  if (!r.ok) throw new Error(j?.erro || "Erro " + r.status);
+  return j ?? r;
+}
+const post = (url, body, method="POST") => api(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+
+function formatarDataBR(iso) {
+  if (!iso) return "";
+  const partes = iso.split("-");
+  return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : iso;
+}
+
+function resumoPaciente(p) {
+  return [
+    p.programa,
+    p.equipe,
+    p.nascimento ? "Nasc: " + formatarDataBR(p.nascimento) : "",
+    p.cpf ? "CPF: " + p.cpf : "",
+    p.telefone,
+    p.endereco
+  ].filter(Boolean).join(" • ");
+}
+
+// ---------- Modal Cadastro / Edição ----------
+function abrirModalPaciente(p = null) {
+  msg($("np-msg"), "");
+  $("np-id").value = p ? p.id : "";
+  $("modal-titulo").textContent = p ? "Editar cadastro do cidadão" : "Cadastro simplificado do cidadão";
+  $("np-nome").value = p ? (p.nome || "") : "";
+  $("np-nascimento").value = p ? (p.nascimento || "") : "";
+  $("np-cpf").value = p ? (p.cpf || "") : "";
+  $("np-tel").value = p ? (p.telefone || "") : "";
+  $("np-equipe").value = p ? (p.equipe || "") : "";
+  $("np-programa").value = p ? (p.programa || "Curativo") : ($("filtro-programa").value || "Curativo");
+  $("np-end").value = p ? (p.endereco || "") : "";
+  $("np-excluir").classList.toggle("hidden", !p);
+  $("modal-paciente").classList.remove("hidden");
+  $("np-nome").focus();
+}
+
+function fecharModalPaciente() {
+  $("modal-paciente").classList.add("hidden");
+}
+
+$("btn-novo-paciente").onclick = () => abrirModalPaciente(null);
+$("modal-fechar").onclick = fecharModalPaciente;
+$("modal-cancelar").onclick = fecharModalPaciente;
+$("modal-paciente").addEventListener("click", e => {
+  if (e.target === $("modal-paciente")) fecharModalPaciente();
+});
+
+$("editar-selecionado").onclick = () => {
+  if (state.paciente) abrirModalPaciente(state.paciente);
+};
+
+// ---------- Busca e Listagem de Pacientes ----------
+let timer;
+$("busca").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(buscar, 200); });
+$("filtro-programa").addEventListener("change", buscar);
+$("filtro-equipe").addEventListener("change", buscar);
+
+async function buscar() {
+  const params = new URLSearchParams();
+  const q = $("busca").value.trim();
+  const prog = $("filtro-programa").value;
+  const eq = $("filtro-equipe").value;
+  if (q) params.set("q", q);
+  if (prog) params.set("programa", prog);
+  if (eq) params.set("equipe", eq);
+
+  const lista = await api("/api/pacientes?" + params.toString());
+  state.listaPacientes = lista;
+  const box = $("resultados");
+  box.replaceChildren();
+
+  if (!lista.length) {
+    const d = document.createElement("div");
+    d.className = "empty";
+    d.textContent = "Nenhum paciente encontrado para os filtros selecionados.";
+    box.append(d);
+    return;
+  }
+
+  for (const p of lista) {
+    const row = document.createElement("div");
+    row.className = "res-item";
+
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "res-main";
+    b.onclick = () => selecionar(p.id);
+
+    const titulo = document.createElement("div");
+    titulo.className = "res-titulo";
+    titulo.textContent = p.nome;
+
+    if (p.programa) {
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = p.programa;
+      titulo.append(badge);
+    }
+
+    const s = document.createElement("small");
+    s.textContent = [
+      p.equipe,
+      p.nascimento ? "Nasc: " + formatarDataBR(p.nascimento) : "",
+      p.cpf,
+      p.telefone
+    ].filter(Boolean).join(" • ");
+
+    b.append(titulo, s);
+
+    const btnEdit = document.createElement("button");
+    btnEdit.type = "button";
+    btnEdit.className = "btn-icon";
+    btnEdit.title = "Editar dados do paciente";
+    btnEdit.setAttribute("aria-label", "Editar dados de " + p.nome);
+    btnEdit.innerHTML = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+      <circle cx="9" cy="10" r="2"></circle>
+      <path d="M6 16c0-1.7 1.3-3 3-3s3 1.3 3 3"></path>
+      <line x1="14" y1="9" x2="18" y2="9"></line>
+      <line x1="14" y1="13" x2="18" y2="13"></line>
+    </svg>`;
+    btnEdit.onclick = e => {
+      e.stopPropagation();
+      abrirModalPaciente(p);
+    };
+
+    const btnDel = document.createElement("button");
+    btnDel.type = "button";
+    btnDel.className = "btn-icon danger";
+    btnDel.title = "Excluir paciente";
+    btnDel.setAttribute("aria-label", "Excluir " + p.nome);
+    btnDel.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>`;
+    btnDel.onclick = e => {
+      e.stopPropagation();
+      excluirPaciente(p.id, p.nome);
+    };
+
+    row.append(b, btnEdit, btnDel);
+    box.append(row);
+  }
+}
+
+async function selecionar(id) {
+  const p = await api("/api/pacientes/" + id);
+  state.paciente = p;
+  state.kit = Object.fromEntries(p.kit.map(k => [k.material_id, k.qtd_mensal]));
+  $("p-nome").textContent = p.nome;
+  $("p-info").textContent = resumoPaciente(p);
+  $("sec-paciente").classList.remove("hidden");
+  render();
+  $("sec-paciente").scrollIntoView({ behavior: "smooth" });
+}
+$("trocar").onclick = () => { state.paciente = null; $("sec-paciente").classList.add("hidden"); $("busca").focus(); };
+
+// ---------- Tabela de materiais ----------
+async function carregarMateriais() { state.materiais = await api("/api/materiais"); render(); }
+function meses() { return Math.max(1, parseInt($("meses").value) || 1); }
+
+async function alternarEstoque(m) {
+  const novoStatus = m.em_estoque ? 0 : 1;
+  await post(`/api/materiais/${m.id}/estoque`, { em_estoque: novoStatus }, "PATCH");
+  m.em_estoque = novoStatus;
+  render();
+}
+
+async function excluirMaterial(id, nome) {
+  if (!confirm(`Excluir permanentemente o material:
+"${nome}"?`)) return;
+  try {
+    await api("/api/materiais/" + id, { method: "DELETE" });
+    delete state.kit[id];
+    await carregarMateriais();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function render() {
+  const tb = $("tb-materiais");
+  const f = $("filtro").value.trim().toLowerCase();
+  tb.replaceChildren();
+  for (const m of state.materiais) {
+    if (f && !m.nome.toLowerCase().includes(f) && !(m.id in state.kit)) continue;
+    const marcado = m.id in state.kit;
+    const semEstoque = !m.em_estoque;
+    const tr = document.createElement("tr");
+    if (!marcado) tr.className = "off";
+
+    const c1 = document.createElement("td");
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = marcado;
+    cb.onchange = () => { if (cb.checked) state.kit[m.id] = state.kit[m.id] || 1; else delete state.kit[m.id]; render(); };
+    c1.append(cb);
+
+    const c2 = document.createElement("td");
+    c2.textContent = m.nome;
+
+    const c3 = document.createElement("td");
+    c3.textContent = m.unidade;
+
+    const cEst = document.createElement("td");
+    const btnEst = document.createElement("button");
+    btnEst.type = "button";
+    btnEst.className = semEstoque ? "badge-estoque falta" : "badge-estoque ok";
+    btnEst.textContent = semEstoque ? "Sem estoque" : "Disponível";
+    btnEst.title = "Clique para alterar a disponibilidade em estoque";
+    btnEst.onclick = () => alternarEstoque(m);
+    cEst.append(btnEst);
+
+    const c4 = document.createElement("td"); c4.className = "num";
+    const q = document.createElement("input"); q.type = "number"; q.min = 1; q.value = marcado ? state.kit[m.id] : "";
+    q.disabled = !marcado;
+    q.oninput = () => { state.kit[m.id] = Math.max(1, parseInt(q.value) || 1); c5.textContent = state.kit[m.id] * meses(); };
+    c4.append(q);
+
+    const c5 = document.createElement("td"); c5.className = "num total";
+    c5.textContent = marcado ? state.kit[m.id] * meses() : "";
+
+    const cDel = document.createElement("td");
+    const btnDelMat = document.createElement("button");
+    btnDelMat.type = "button";
+    btnDelMat.className = "btn-icon danger";
+    btnDelMat.title = "Excluir material (temporário)";
+    btnDelMat.setAttribute("aria-label", "Excluir material " + m.nome);
+    btnDelMat.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>`;
+    btnDelMat.onclick = () => excluirMaterial(m.id, m.nome);
+    cDel.append(btnDelMat);
+
+    tr.append(c1, c2, c3, cEst, c4, c5, cDel);
+    tb.append(tr);
+  }
+}
+$("filtro").addEventListener("input", render);
+$("meses").addEventListener("input", render);
+
+function itens() { return Object.entries(state.kit).map(([id, q]) => ({ material_id: +id, qtd_mensal: q })); }
+
+// ---------- Ações ----------
+$("salvar-kit").onclick = async () => {
+  try { await post(`/api/pacientes/${state.paciente.id}/kit`, { itens: itens() }, "PUT"); msg($("msg"), "Kit padrão salvo para " + state.paciente.nome + ".", "ok"); }
+  catch (e) { msg($("msg"), e.message, "err"); }
+};
+
+$("gerar").onclick = async () => {
+  if (!itens().length) return msg($("msg"), "Selecione ao menos um material.", "err");
+  try {
+    const r = await post("/api/recibo", { paciente_id: state.paciente.id, meses: meses(), itens: itens(), data_entrega: $("data").value });
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank") || Object.assign(document.createElement("a"), { href: url, download: "recibo.pdf" }).click();
+    msg($("msg"), "Recibo gerado.", "ok");
+  } catch (e) { msg($("msg"), e.message, "err"); }
+};
+
+$("np-salvar").onclick = async () => {
+  const idEdicao = $("np-id").value;
+  const payload = {
+    nome: $("np-nome").value,
+    nascimento: $("np-nascimento").value,
+    cpf: $("np-cpf").value,
+    telefone: $("np-tel").value,
+    equipe: $("np-equipe").value,
+    programa: $("np-programa").value,
+    endereco: $("np-end").value
+  };
+
+  try {
+    const r = idEdicao
+      ? await post("/api/pacientes/" + idEdicao, payload, "PUT")
+      : await post("/api/pacientes", payload, "POST");
+    fecharModalPaciente();
+    await buscar();
+    await selecionar(r.id);
+  } catch (e) {
+    msg($("np-msg"), e.message, "err");
+  }
+};
+
+async function excluirPaciente(id, nome) {
+  if (!confirm(`Tem certeza que deseja excluir o paciente "${nome}"?
+
+Essa ação removerá também o kit padrão salvo e não pode ser desfeita.`)) {
+    return;
+  }
+  try {
+    await api("/api/pacientes/" + id, { method: "DELETE" });
+    if (state.paciente && state.paciente.id === Number(id)) {
+      state.paciente = null;
+      $("sec-paciente").classList.add("hidden");
+    }
+    fecharModalPaciente();
+    await buscar();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+$("np-excluir").onclick = () => {
+  const id = $("np-id").value;
+  const nome = $("np-nome").value;
+  if (id) excluirPaciente(id, nome);
+};
+
+$("nm-salvar").onclick = async () => {
+  try {
+    await post("/api/materiais", {
+      nome: $("nm-nome").value,
+      unidade: $("nm-un").value,
+      em_estoque: $("nm-estoque").value === "1"
+    });
+    $("nm-nome").value = "";
+    $("nm-estoque").value = "1";
+    msg($("nm-msg"), "Material adicionado.", "ok");
+    await carregarMateriais();
+  } catch (e) { msg($("nm-msg"), e.message, "err"); }
+};
+
+carregarMateriais();
+buscar();
+</script>
+
+<script>
+  (function() {
+    const img = new Image();
+    img.src = "/static/csi.png";
+    img.onload = function() {
+      const size = Math.min(img.width, img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+      let link = document.querySelector("link[rel*='icon']") || document.createElement("link");
+      link.rel = "icon";
+      link.type = "image/png";
+      link.href = canvas.toDataURL("image/png");
+      document.head.appendChild(link);
+    };
+  })();
+</script>
+
+</body>
+</html>
