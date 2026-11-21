@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMPRESSORAS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/computadores-impressoras.css">
+</head>
+<body>
+
+  <div class="barra-topo">
+    <header class="cabecalho">
+      <div class="cabecalho__conteudo">
+        <nav class="menu" aria-label="Menu principal">
+          <ul class="menu__lista">
+            <li><a href="administrativo.html">HOME</a></li>
+            <li><a href="curativos.html" onclick="if (location.hostname !== '127.0.0.1' && location.hostname !== 'localhost') { alert('O módulo de Curativos funciona apenas localmente no computador da unidade.'); return false; }">CURATIVOS</a></li>
+            <li><a href="spe.html">SPE</a></li>
+            <li><a href="impressoras.html">IMPRESSORAS</a></li>
+            <li><a href="computadores.html">COMPUTADORES</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+  </div>
+
+  <main class="computadores">
+    <div class="computadores__topo">
+      <div>
+        <h1 class="computadores__titulo">Impressoras</h1>
+        <p class="computadores__sub">Busque pelo andar, local, modelo, IP ou número de série. Clique em uma linha para editar.</p>
+      </div>
+      <div class="dlg__acoes-grupo">
+        <button type="button" class="btn" id="btnPdf">Gerar PDF</button>
+        <button type="button" class="btn btn--primario" id="btnAdicionar">+ Adicionar impressora</button>
+      </div>
+    </div>
+
+    <div class="computadores__busca">
+      <input id="busca" type="search" placeholder="Ex.: Consultório 1, MS 521, A CABO, 10.17.96.70, 460031…" autocomplete="off" autofocus>
+    </div>
+
+    <section class="painel-resumo" aria-label="Quantitativo CS Itamarati">
+      <div class="painel-resumo__cabecalho">CS ITAMARATI — Em uso</div>
+      <div class="painel-resumo__grid">
+        <div class="painel-resumo__card">
+          <span class="painel-resumo__label">Modelo XM 3350</span>
+          <strong class="painel-resumo__valor" id="qtdXm3350">0</strong>
+        </div>
+        <div class="painel-resumo__card">
+          <span class="painel-resumo__label">Modelo MS 521</span>
+          <strong class="painel-resumo__valor" id="qtdMs521">0</strong>
+        </div>
+        <div class="painel-resumo__card">
+          <span class="painel-resumo__label">Modelo MS 531</span>
+          <strong class="painel-resumo__valor" id="qtdMs531">0</strong>
+        </div>
+        <div class="painel-resumo__card painel-resumo__card--total">
+          <span class="painel-resumo__label">Quantidade total</span>
+          <strong class="painel-resumo__valor" id="qtdTotal">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="computadores__filtros" id="filtros"></div>
+
+    <div class="computadores__resumo">
+      <span id="contagem"></span>
+    </div>
+
+    <div class="computadores__tabela-wrap">
+      <table class="computadores__tabela">
+        <thead>
+          <tr>
+            <th>Andar</th>
+            <th>Local</th>
+            <th>Modelo</th>
+            <th>IP</th>
+            <th>Número de Série</th>
+            <th>Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo"></tbody>
+      </table>
+      <p class="computadores__vazio hidden" id="vazio">Nenhuma impressora encontrada.</p>
+    </div>
+  </main>
+
+  <!-- Editar impressora -->
+  <dialog id="dlgEditar" class="dlg">
+    <form id="formEditar" autocomplete="off">
+      <h2>Editar impressora</h2>
+      <p class="dlg__info" id="edInfo"></p>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Andar *
+          <select id="edAndar" required>
+            <option value="1º Andar">1º Andar</option>
+            <option value="2º Andar">2º Andar</option>
+          </select>
+        </label>
+        <label class="dlg__campo">Local *
+          <select id="edLocal" required></select>
+        </label>
+      </div>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Modelo *
+          <input id="edModelo" type="text" list="listaModelos" placeholder="Ex.: MS 521, MS 531, XM 3350" required>
+        </label>
+        <label class="dlg__campo">IP
+          <input id="edIp" type="text" placeholder="Ex.: 10.17.96.70 ou A CABO">
+        </label>
+      </div>
+
+      <label class="dlg__campo">Número de Série
+        <input id="edSerie" type="text" placeholder="Ex.: 460031442F7TT">
+      </label>
+
+      <fieldset class="dlg__sumiu">
+        <legend>Substituição</legend>
+        <label class="dlg__check"><input type="checkbox" id="edTrocado"> Marcar como trocada</label>
+        <div id="edTrocadoCampos" class="hidden">
+          <div class="dlg__linha">
+            <label class="dlg__campo">Novo modelo *
+              <input id="edNovoModelo" type="text" list="listaModelos" placeholder="Ex.: MS 521, MS 531, XM 3350">
+            </label>
+            <label class="dlg__campo">Novo IP
+              <input id="edNovoIp" type="text" placeholder="Ex.: 10.17.96.70 ou A CABO">
+            </label>
+          </div>
+          <label class="dlg__campo">Novo número de série *
+            <input id="edNovaSerie" type="text" placeholder="Ex.: 460031442F7TT">
+          </label>
+          <label class="dlg__campo">Observação (opcional)
+            <textarea id="edObs" rows="2"></textarea>
+          </label>
+          <p class="dlg__info" id="edTrocadoEm"></p>
+        </div>
+      </fieldset>
+
+      <p class="dlg__erro hidden" id="edErro"></p>
+      <div class="dlg__acoes dlg__acoes--entre">
+        <button type="button" class="btn btn--perigo" id="edExcluir">Excluir</button>
+        <div class="dlg__acoes-grupo">
+          <button type="button" class="btn" id="edCancelar">Cancelar</button>
+          <button type="submit" class="btn btn--primario">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Adicionar impressora -->
+  <dialog id="dlgAdd" class="dlg">
+    <form id="formAdd" autocomplete="off">
+      <h2>Adicionar impressora</h2>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Andar *
+          <select id="adAndar" required>
+            <option value="">Selecione o andar…</option>
+            <option value="1º Andar">1º Andar</option>
+            <option value="2º Andar">2º Andar</option>
+          </select>
+        </label>
+        <label class="dlg__campo">Local *
+          <select id="adLocal" required>
+            <option value="">Selecione o andar primeiro…</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Modelo *
+          <input id="adModelo" type="text" list="listaModelos" placeholder="Ex.: MS 521, MS 531, XM 3350" required>
+        </label>
+        <label class="dlg__campo">IP
+          <input id="adIp" type="text" placeholder="Ex.: 10.17.96.70 ou A CABO">
+        </label>
+      </div>
+
+      <label class="dlg__campo">Número de Série
+        <input id="adSerie" type="text" placeholder="Ex.: 460031442F7TT">
+      </label>
+
+      <datalist id="listaModelos">
+        <option value="MS 521">
+        <option value="MS 531">
+        <option value="XM 3350">
+      </datalist>
+
+      <p class="dlg__erro hidden" id="adErro"></p>
+      <div class="dlg__acoes">
+        <button type="button" class="btn" id="adCancelar">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Adicionar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const LOCAIS_PADRAO = {
+      "1º Andar": [
+        "ASSISTÊNCIA FARMACÊUTICA",
+        "COLETA",
+        "CONSULTÓRIO 1",
+        "CONSULTÓRIO 2",
+        "CONSULTÓRIO 3",
+        "CONSULTÓRIO 4",
+        "CONSULTÓRIO 5",
+        "FARMÁCIA",
+        "MULTIUSO",
+        "OBSERVAÇÃO",
+        "PAINEL RECEPÇÃO",
+        "PAINEL SUB-ESPERA",
+        "PRÉ-RECEPÇÃO",
+        "RECEPÇÃO",
+        "TRIAGEM",
+        "VACINA",
+        "ZOONOSES",
+      ],
+      "2º Andar": [
+        "ADMINISTRATIVO",
+        "CONSULTÓRIO 6",
+        "CONSULTÓRIO 7",
+        "CONSULTÓRIO 8",
+        "CONSULTÓRIO 9",
+        "CONSULTÓRIO 10",
+        "CONSULTÓRIO 11",
+        "CONSULTÓRIO 12",
+        "CONSULTÓRIO 13",
+        "CONSULTÓRIO 14",
+        "CONSULTÓRIO 15",
+        "CONSULTÓRIO 16",
+        "CONSULTÓRIO 17",
+        "COPA",
+        "GERÊNCIA",
+        "NOTEBOOK",
+        "ODONTOLOGIA",
+        "SALA DOS AGENTES",
+      ],
+    };
+
+    const norm = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const soDigitos = s => String(s || "").replace(/\D/g, "");
+
+    const GRUPOS = [
+      ["Todos", null],
+      ["1º Andar", e => norm(e.andar).includes("1")],
+      ["2º Andar", e => norm(e.andar).includes("2")],
+      ["MS 521", e => norm(e.modelo).replace(/\s+/g, "").includes("ms521")],
+      ["MS 531", e => norm(e.modelo).replace(/\s+/g, "").includes("ms531")],
+      ["XM 3350", e => norm(e.modelo).replace(/\s+/g, "").includes("xm3350")],
+      ["A CABO", e => norm(e.ip).includes("cabo")],
+      ["Trocado", e => e.trocado],
+    ];
+
+    function obterLocaisPorAndar(andar, extraLocal = "") {
+      const conjunto = new Set(LOCAIS_PADRAO[andar] || [
+        ...LOCAIS_PADRAO["1º Andar"],
+        ...LOCAIS_PADRAO["2º Andar"],
+      ]);
+
+      dados.forEach(item => {
+        if ((!andar || item.andar === andar) && item.local) {
+          conjunto.add(item.local.trim().toUpperCase());
+        }
+      });
+
+      if (extraLocal) {
+        conjunto.add(extraLocal.trim().toUpperCase());
+      }
+
+      return Array.from(conjunto).sort((a, b) =>
+        a.localeCompare(b, "pt-BR", { numeric: true, sensitivity: "base" })
+      );
+    }
+
+    function preencherSelectLocais(selectEl, andar, valorSelecionado = "") {
+      if (!andar) {
+        selectEl.innerHTML = '<option value="">Selecione o andar primeiro…</option>';
+        return;
+      }
+      const lista = obterLocaisPorAndar(andar, valorSelecionado);
+      const alvo = valorSelecionado.trim().toUpperCase();
+      selectEl.innerHTML =
+        '<option value="">Selecione o local…</option>' +
+        lista.map(loc => `<option value="${esc(loc)}"${loc === alvo ? " selected" : ""}>${esc(loc)}</option>`).join("");
+    }
+
+    function aliasesAndar(andar) {
+      const a = norm(andar);
+      if (a.includes("1")) return "1o andar 1 andar primeiro andar";
+      if (a.includes("2")) return "2o andar 2 andar segundo andar";
+      return a;
+    }
+
+    function ordenarDados() {
+      dados.sort((a, b) => {
+        if (Boolean(a.trocado) !== Boolean(b.trocado)) {
+          return a.trocado ? 1 : -1;
+        }
+        const cmpAndar = (a.andar || "zzz").localeCompare(b.andar || "zzz", "pt-BR", { numeric: true, sensitivity: "base" });
+        if (cmpAndar !== 0) return cmpAndar;
+        const cmpLocal = (a.local || "").localeCompare(b.local || "", "pt-BR", { numeric: true, sensitivity: "base" });
+        if (cmpLocal !== 0) return cmpLocal;
+        return (a.id || 0) - (b.id || 0);
+      });
+    }
+
+    let dados = [];
+    let listaFiltradaAtual = [];
+    let filtrosAtivos = new Set();
+    let editandoId = null;
+
+    const $ = id => document.getElementById(id);
+    const $busca = $("busca"), $corpo = $("corpo"), $conta = $("contagem"), $vazio = $("vazio");
+    const $filtros = $("filtros");
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    async function api(metodo, url, corpo) {
+      const r = await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: corpo ? JSON.stringify(corpo) : undefined,
+      });
+      let json = null;
+      try { json = await r.json(); } catch (_) {}
+      if (!r.ok) throw new Error((json && json.erro) || ("Erro " + r.status));
+      return json;
+    }
+
+    function situacao(e) {
+      if (!e.trocado) return '<span class="badge badge--ok">Em uso</span>';
+      return '<span class="badge badge--trocado">Trocado</span>';
+    }
+
+    function atualizarPainelResumo() {
+      const ativos = dados.filter(e => !e.trocado);
+      let xm3350 = 0;
+      let ms521 = 0;
+      let ms531 = 0;
+
+      ativos.forEach(e => {
+        const m = norm(e.modelo).replace(/\s+/g, "");
+        if (m.includes("xm3350")) xm3350++;
+        else if (m.includes("ms521")) ms521++;
+        else if (m.includes("ms531")) ms531++;
+      });
+
+      $("qtdXm3350").textContent = xm3350;
+      $("qtdMs521").textContent = ms521;
+      $("qtdMs531").textContent = ms531;
+      $("qtdTotal").textContent = ativos.length;
+    }
+
+    function montarFiltros() {
+      $filtros.innerHTML = GRUPOS.map((g, i) => {
+        const ativo = i === 0 ? filtrosAtivos.size === 0 : filtrosAtivos.has(i);
+        return `<button type="button" class="computadores__chip${ativo ? " ativo" : ""}" data-i="${i}">${esc(g[0])}</button>`;
+      }).join("");
+    }
+
+    function filtrarLista() {
+      const termos = norm($busca.value).split(/\s+/).filter(Boolean);
+
+      return dados.filter(e => {
+        if (filtrosAtivos.size > 0) {
+          const bateAlgumFiltro = Array.from(filtrosAtivos).some(idx => {
+            const fn = GRUPOS[idx] && GRUPOS[idx][1];
+            return fn ? fn(e) : false;
+          });
+          if (!bateAlgumFiltro) return false;
+        }
+
+        const status = e.trocado ? "trocado" : "em uso";
+
+        const textoAlvo = norm([
+          e.andar,
+          aliasesAndar(e.andar),
+          e.local,
+          e.modelo,
+          norm(e.modelo).replace(/\s+/g, ""),
+          e.ip,
+          soDigitos(e.ip),
+          e.serie,
+          status
+        ].join(" "));
+
+        return termos.every(t => {
+          const tDig = soDigitos(t);
+          if (tDig && !/[a-z]/.test(t)) {
+            return textoAlvo.includes(t) || textoAlvo.includes(tDig);
+          }
+          return textoAlvo.includes(t);
+        });
+      });
+    }
+
+    function render() {
+      ordenarDados();
+      atualizarPainelResumo();
+      listaFiltradaAtual = filtrarLista();
+
+      $corpo.innerHTML = listaFiltradaAtual.map(e => `
+        <tr class="${e.trocado ? "linha-trocado" : ""}" data-id="${e.id}">
+          <td>${esc(e.andar) || "—"}</td>
+          <td><strong>${esc(e.local)}</strong></td>
+          <td>${esc(e.modelo) || "—"}</td>
+          <td class="mono">${e.ip ? esc(e.ip) : '<span class="computadores__semresp">sem IP</span>'}</td>
+          <td class="mono">${e.serie ? esc(e.serie) : '<span class="computadores__semresp">sem série</span>'}</td>
+          <td>${situacao(e)}</td>
+          <td><button type="button" class="btn btn--pequeno">Editar</button></td>
+        </tr>`).join("");
+
+      $conta.textContent = `${listaFiltradaAtual.length} de ${dados.length} impressoras`;
+      $vazio.classList.toggle("hidden", listaFiltradaAtual.length > 0);
+    }
+
+    function atualizarItem(item) {
+      const i = dados.findIndex(e => e.id === item.id);
+      if (i >= 0) dados[i] = item; else dados.unshift(item);
+      render();
+    }
+
+    function descreverFiltroAtual() {
+      const partes = [];
+      if (filtrosAtivos.size > 0) {
+        const nomes = Array.from(filtrosAtivos).map(i => GRUPOS[i][0]);
+        partes.push("Filtros: " + nomes.join(", "));
+      }
+      const buscaTxt = $busca.value.trim();
+      if (buscaTxt) {
+        partes.push('Busca: "' + buscaTxt + '"');
+      }
+      return partes.length ? partes.join(" · ") : "Todos os registros";
+    }
+
+    /* ---------- Gerar PDF ---------- */
+    $("btnPdf").addEventListener("click", async () => {
+      const btn = $("btnPdf");
+      if (!listaFiltradaAtual.length) {
+        alert("Não há impressoras na lista atual para gerar o PDF.");
+        return;
+      }
+      const textoOriginal = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Gerando PDF…";
+      try {
+        const r = await fetch("/api/impressoras/pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itens: listaFiltradaAtual,
+            filtro: descreverFiltroAtual(),
+          }),
+        });
+        if (!r.ok) {
+          let errMsg = "Erro ao gerar PDF.";
+          try {
+            const j = await r.json();
+            if (j && j.erro) errMsg = j.erro;
+          } catch (_) {}
+          throw new Error(errMsg);
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `impressoras_cs_itamarati_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = textoOriginal;
+      }
+    });
+
+    /* ---------- Editar ---------- */
+    const $dlgEd = $("dlgEditar");
+
+    $("edAndar").addEventListener("change", () => {
+      preencherSelectLocais($("edLocal"), $("edAndar").value, $("edLocal").value);
+    });
+
+    function ajustarCamposTrocado() {
+      $("edTrocadoCampos").classList.toggle("hidden", !$("edTrocado").checked);
+    }
+
+    function abrirEditar(id) {
+      const e = dados.find(x => x.id === Number(id));
+      if (!e) return;
+      editandoId = e.id;
+      $("edInfo").textContent = [e.andar, e.local, e.modelo].filter(Boolean).join(" · ");
+      const andarAtual = e.andar || "1º Andar";
+      $("edAndar").value = andarAtual;
+      preencherSelectLocais($("edLocal"), andarAtual, e.local || "");
+      $("edModelo").value = e.modelo || "";
+      $("edIp").value = e.ip || "";
+      $("edSerie").value = e.serie || "";
+      $("edTrocado").checked = e.trocado;
+      $("edNovoModelo").value = e.novo_modelo || "";
+      $("edNovoIp").value = e.novo_ip || "";
+      $("edNovaSerie").value = e.nova_serie || "";
+      $("edObs").value = e.obs || "";
+      $("edTrocadoEm").textContent = e.trocado && e.trocado_em ? "Marcado como trocada em " + e.trocado_em : "";
+      $("edErro").classList.add("hidden");
+      ajustarCamposTrocado();
+      $dlgEd.showModal();
+      $("edLocal").focus();
+    }
+
+    $("edTrocado").addEventListener("change", ajustarCamposTrocado);
+    $("edCancelar").addEventListener("click", () => $dlgEd.close());
+
+    $("edExcluir").addEventListener("click", async () => {
+      if (!confirm("Remover esta impressora do cadastro?")) return;
+      try {
+        await api("DELETE", "/api/impressoras/" + editandoId);
+        dados = dados.filter(x => x.id !== editandoId);
+        render();
+        $dlgEd.close();
+      } catch (err) {
+        $("edErro").textContent = err.message;
+        $("edErro").classList.remove("hidden");
+      }
+    });
+
+    $("formEditar").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      try {
+        const res = await api("PUT", "/api/impressoras/" + editandoId, {
+          andar: $("edAndar").value.trim(),
+          local: $("edLocal").value.trim(),
+          modelo: $("edModelo").value.trim(),
+          ip: $("edIp").value.trim(),
+          serie: $("edSerie").value.trim(),
+          trocado: $("edTrocado").checked,
+          novo_modelo: $("edNovoModelo").value.trim(),
+          novo_ip: $("edNovoIp").value.trim(),
+          nova_serie: $("edNovaSerie").value.trim(),
+          obs: $("edObs").value.trim(),
+        });
+        atualizarItem(res.item);
+        if (res.novo_item) {
+          atualizarItem(res.novo_item);
+        }
+        $dlgEd.close();
+      } catch (err) {
+        $("edErro").textContent = err.message;
+        $("edErro").classList.remove("hidden");
+      }
+    });
+
+    /* ---------- Adicionar ---------- */
+    const $dlgAdd = $("dlgAdd");
+
+    $("adAndar").addEventListener("change", () => {
+      preencherSelectLocais($("adLocal"), $("adAndar").value);
+    });
+
+    $("btnAdicionar").addEventListener("click", () => {
+      $("formAdd").reset();
+      preencherSelectLocais($("adLocal"), "");
+      $("adErro").classList.add("hidden");
+      $dlgAdd.showModal();
+      $("adAndar").focus();
+    });
+    $("adCancelar").addEventListener("click", () => $dlgAdd.close());
+
+    $("formAdd").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      try {
+        const item = await api("POST", "/api/impressoras", {
+          andar: $("adAndar").value.trim(),
+          local: $("adLocal").value.trim(),
+          modelo: $("adModelo").value.trim(),
+          ip: $("adIp").value.trim(),
+          serie: $("adSerie").value.trim(),
+        });
+        atualizarItem(item);
+        $dlgAdd.close();
+      } catch (err) {
+        $("adErro").textContent = err.message;
+        $("adErro").classList.remove("hidden");
+      }
+    });
+
+    /* ---------- Eventos gerais ---------- */
+    $filtros.addEventListener("click", ev => {
+      const b = ev.target.closest(".computadores__chip");
+      if (!b) return;
+      const idx = Number(b.dataset.i);
+      if (idx === 0) {
+        filtrosAtivos.clear();
+      } else {
+        if (filtrosAtivos.has(idx)) {
+          filtrosAtivos.delete(idx);
+        } else {
+          filtrosAtivos.add(idx);
+        }
+      }
+      montarFiltros();
+      render();
+    });
+    $corpo.addEventListener("click", ev => {
+      const tr = ev.target.closest("tr[data-id]");
+      if (tr) abrirEditar(tr.dataset.id);
+    });
+    $busca.addEventListener("input", render);
+
+    montarFiltros();
+    api("GET", "/api/impressoras")
+      .then(d => { dados = d; render(); })
+      .catch(err => { $conta.textContent = "Erro ao carregar as impressoras: " + err.message; });
+  </script>
+
+  <script>
+    (function() {
+      const img = new Image();
+      img.src = "/static/csi.png";
+      img.onload = function() {
+        const size = Math.min(img.width, img.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+        let link = document.querySelector("link[rel*='icon']") || document.createElement("link");
+        link.rel = "icon";
+        link.type = "image/png";
+        link.href = canvas.toDataURL("image/png");
+        document.head.appendChild(link);
+      };
+    })();
+  </script>
+
+</body>
+</html>

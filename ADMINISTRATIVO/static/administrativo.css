@@ -1,0 +1,176 @@
+
+/* ---------- Base ---------- */
+:root {
+  --fundo: #051d14;
+  --barra: #3b3f40;
+  --texto: #e8f1f3;
+  --destaque: #0f4d5e;
+  --submenu-fundo: #0f4d5e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Manrope", system-ui, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+
+/* ---------- Cabeçalho ---------- */
+.barra-topo{
+  position: sticky;     
+  top: 12px;
+  z-index: 20;
+
+  width: min(92%, 880px);
+  height: 50px;
+  margin: 16px auto;
+
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+
+  border: 2px solid #ffffff25;   
+  border-radius: 999px;        
+  background: rgba(255, 255, 255, 0.089);  
+  backdrop-filter: blur(8px);         
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.cabecalho {
+  width: 100%;     
+}
+
+.cabecalho__conteudo {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;           
+  display: flex;
+  align-items: center;    
+  justify-content: center;  
+  gap: 24px;
+  letter-spacing: 2px;
+}
+
+.menu {
+  padding-top: 0px;
+}
+
+.menu__lista {
+  justify-content: center;
+}
+
+
+/* ---------- Menu ---------- */
+
+.menu__lista {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.menu__lista > li > a {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.menu__lista > li > a:hover {
+  color: var(--destaque);
+}
+
+
+
+/* ---------- Hero ---------- */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 40px;
+  min-height: 70vh;
+  padding-left: max(24px, calc((100vw - 1200px) / 2 + 24px));
+}
+
+.hero__texto h1 {
+  font-size: 44px;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.hero__texto p {
+  font-size: 18px;
+  max-width: 460px;
+  opacity: 0.85;
+  text-align: center;
+  align-items: center;    
+
+}
+
+
+.hero__imagem {
+  align-self: end;
+  height: 100%;
+  max-height: 520px;
+  overflow: hidden;
+  border-top-left-radius: 48px;
+  margin-top: 40px;
+}
+
+.hero__imagem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 900px) {
+  .cabecalho__conteudo {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .menu {
+    padding-top: 0;
+  }
+
+  .menu__lista {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 18px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .hero__texto p {
+    margin: 0 auto;
+  }
+
+  .hero__imagem {
+    border-radius: 32px 32px 0 0;
+    margin-top: 0;
+  }
+}
