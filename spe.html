@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centro de Saúde Itamarati</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/spe.css">
+</head>
+<body>
+
+  <div class="barra-topo">
+    <header class="cabecalho">
+      <div class="cabecalho__conteudo">
+        <nav class="menu" aria-label="Menu principal">
+          <ul class="menu__lista">
+            <li><a href="administrativo.html">HOME</a></li>
+            <li><a href="curativos.html" onclick="if (location.hostname !== '127.0.0.1' && location.hostname !== 'localhost') { alert('O módulo de Curativos funciona apenas localmente no computador da unidade.'); return false; }">CURATIVOS</a></li>
+            <li><a href="spe.html">SPE</a></li>
+            <li><a href="impressoras.html">IMPRESSORAS</a></li>
+            <li><a href="computadores.html">COMPUTADORES</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+  </div>
+
+  <main class="spe">
+    <div class="spe__topo">
+      <div>
+        <h1 class="spe__titulo">Equipamentos SPE</h1>
+        <p class="spe__sub">Busque pelo número do patrimônio, nome do aparelho ou responsável. Clique em uma linha para editar.</p>
+      </div>
+      <button type="button" class="btn btn--primario" id="btnAdicionar">+ Adicionar patrimônio</button>
+    </div>
+
+    <div class="spe__busca">
+      <input id="busca" type="search" placeholder="Ex.: 75251, otoscópio, esteto pediátrico, nome da pessoa…" autocomplete="off" autofocus>
+    </div>
+
+    <div class="spe__filtros" id="filtros"></div>
+
+    <div class="spe__resumo">
+      <span id="contagem"></span>
+      <label class="spe__check"><input type="checkbox" id="semResp"> Só sem responsável</label>
+    </div>
+
+    <div class="spe__tabela-wrap">
+      <table class="spe__tabela">
+        <thead>
+          <tr>
+            <th>Patrimônio</th>
+            <th>Equipamento</th>
+            <th>Responsável</th>
+            <th>Situação</th>
+            <th>Fabricante / Modelo</th>
+            <th>Nº de série</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo"></tbody>
+      </table>
+      <p class="spe__vazio hidden" id="vazio">Nenhum equipamento encontrado.</p>
+    </div>
+  </main>
+
+  <!-- Editar patrimônio -->
+  <dialog id="dlgEditar" class="dlg">
+    <form id="formEditar" autocomplete="off">
+      <h2 id="edTitulo"></h2>
+      <p class="dlg__info" id="edInfo"></p>
+
+      <label class="dlg__campo">Responsável
+        <input id="edResp" type="text" placeholder="Nome de quem está com o aparelho">
+      </label>
+
+      <fieldset class="dlg__sumiu">
+        <legend>Sumiço</legend>
+        <label class="dlg__check"><input type="checkbox" id="edSumiu"> Marcar como sumiu</label>
+        <div id="edSumiuCampos" class="hidden">
+          <label class="dlg__check"><input type="checkbox" id="edBo"> Foi realizado BO</label>
+          <label class="dlg__campo hidden" id="edBoNumWrap">Nº do BO (opcional)
+            <input id="edBoNum" type="text">
+          </label>
+          <label class="dlg__campo">Observação (opcional)
+            <textarea id="edObs" rows="2"></textarea>
+          </label>
+          <p class="dlg__info" id="edSumiuEm"></p>
+        </div>
+      </fieldset>
+
+      <p class="dlg__erro hidden" id="edErro"></p>
+      <div class="dlg__acoes">
+        <button type="button" class="btn" id="edCancelar">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Adicionar patrimônio -->
+  <dialog id="dlgAdd" class="dlg">
+    <form id="formAdd" autocomplete="off">
+      <h2>Adicionar patrimônio</h2>
+
+      <label class="dlg__campo">Nº do patrimônio *
+        <input id="adPat" type="text" inputmode="numeric" placeholder="Ex.: 75251" required>
+      </label>
+
+      <label class="dlg__campo">Tipo de aparelho *
+        <select id="adTipo"></select>
+      </label>
+
+      <div id="adOutroWrap" class="dlg__linha hidden">
+        <label class="dlg__campo">Equipamento *
+          <input id="adEquip" type="text" placeholder="Ex.: Termômetro">
+        </label>
+        <label class="dlg__campo">Variação
+          <input id="adVariacao" type="text" placeholder="Ex.: Adulto (opcional)">
+        </label>
+      </div>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Fabricante
+          <input id="adFab" type="text">
+        </label>
+        <label class="dlg__campo">Modelo
+          <input id="adModelo" type="text">
+        </label>
+      </div>
+
+      <div class="dlg__linha">
+        <label class="dlg__campo">Nº de série
+          <input id="adSerie" type="text">
+        </label>
+        <label class="dlg__campo">Ano
+          <input id="adAno" type="text" inputmode="numeric" maxlength="4">
+        </label>
+      </div>
+
+      <label class="dlg__campo">Responsável
+        <input id="adResp" type="text">
+      </label>
+
+      <p class="dlg__erro hidden" id="adErro"></p>
+      <div class="dlg__acoes">
+        <button type="button" class="btn" id="adCancelar">Cancelar</button>
+        <button type="submit" class="btn btn--primario">Adicionar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const GRUPOS = [
+      ["Todos", null],
+      ["Esfigmo adulto", e => e.equipamento === "Esfigmomanômetro" && e.tipo === "Adulto"],
+      ["Esfigmo infantil", e => e.equipamento === "Esfigmomanômetro" && e.tipo === "Infantil"],
+      ["Esfigmo obeso", e => e.equipamento === "Esfigmomanômetro" && e.tipo === "Obeso"],
+      ["Estetoscópio adulto", e => e.equipamento === "Estetoscópio" && e.tipo === "Adulto"],
+      ["Estetoscópio pediátrico", e => e.equipamento === "Estetoscópio" && e.tipo === "Pediátrico"],
+      ["Oftalmoscópio", e => e.equipamento === "Oftalmoscópio"],
+      ["Otoscópio", e => e.equipamento === "Otoscópio"],
+      ["Oxímetro", e => e.equipamento === "Oxímetro"],
+      ["Detector fetal", e => e.equipamento === "Detector fetal"],
+      ["Sumiu", e => e.sumiu],
+    ];
+
+    // opções do formulário "Adicionar" -> [equipamento, tipo]
+    const TIPOS_APARELHO = [
+      ["Esfigmomanômetro", "Adulto"], ["Esfigmomanômetro", "Infantil"], ["Esfigmomanômetro", "Obeso"],
+      ["Estetoscópio", "Adulto"], ["Estetoscópio", "Pediátrico"],
+      ["Oftalmoscópio", ""], ["Otoscópio", ""], ["Oxímetro", ""], ["Detector fetal", ""],
+    ];
+
+    // minúsculas, sem acento; "esfigmo" casa com "esfigmomanômetro", "esteto" com "estetoscópio"
+    const norm = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+    let dados = [];
+    let grupoAtual = 0;
+    let editando = null; // patrimônio em edição
+
+    const $ = id => document.getElementById(id);
+    const $busca = $("busca"), $corpo = $("corpo"), $conta = $("contagem"), $vazio = $("vazio");
+    const $semResp = $("semResp"), $filtros = $("filtros");
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    async function api(metodo, url, corpo) {
+      const r = await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: corpo ? JSON.stringify(corpo) : undefined,
+      });
+      let json = null;
+      try { json = await r.json(); } catch (_) {}
+      if (!r.ok) throw new Error((json && json.erro) || ("Erro " + r.status));
+      return json;
+    }
+
+    function situacao(e) {
+      if (!e.sumiu) return '<span class="badge badge--ok">Em uso</span>';
+      const bo = e.bo_realizado
+        ? "BO realizado" + (e.bo_numero ? " (nº " + esc(e.bo_numero) + ")" : "")
+        : "BO não realizado";
+      return `<span class="badge badge--sumiu">Sumiu</span><br><small>${bo}</small>`;
+    }
+
+    function montarFiltros() {
+      $filtros.innerHTML = GRUPOS.map((g, i) =>
+        `<button type="button" class="spe__chip${i === grupoAtual ? " ativo" : ""}" data-i="${i}">${esc(g[0])}</button>`
+      ).join("");
+    }
+
+    function render() {
+      const termos = norm($busca.value).split(/\s+/).filter(Boolean);
+      const filtroGrupo = GRUPOS[grupoAtual][1];
+
+      const lista = dados.filter(e => {
+        if (filtroGrupo && !filtroGrupo(e)) return false;
+        if ($semResp.checked && e.responsavel) return false;
+        const status = e.sumiu ? "sumiu bo " + (e.bo_realizado ? "realizado " + e.bo_numero : "nao realizado") : "";
+        const alvo = norm([e.patrimonio, e.nome, e.responsavel, e.fabricante, e.modelo, e.serie, status].join(" "));
+        return termos.every(t => alvo.includes(t));
+      });
+
+      $corpo.innerHTML = lista.map(e => `
+        <tr class="${e.sumiu ? "linha-sumiu" : ""}" data-pat="${esc(e.patrimonio)}">
+          <td class="mono">${esc(e.patrimonio)}</td>
+          <td>${esc(e.nome)}</td>
+          <td>${e.responsavel ? esc(e.responsavel) : '<span class="spe__semresp">não vinculado</span>'}</td>
+          <td>${situacao(e)}</td>
+          <td>${esc(e.fabricante)}<br><small>${esc(e.modelo)}</small></td>
+          <td class="mono">${esc(e.serie) || "—"}</td>
+          <td><button type="button" class="btn btn--pequeno" data-editar="${esc(e.patrimonio)}">Editar</button></td>
+        </tr>`).join("");
+
+      $conta.textContent = `${lista.length} de ${dados.length} equipamentos`;
+      $vazio.classList.toggle("hidden", lista.length > 0);
+    }
+
+    function atualizarItem(item) {
+      const i = dados.findIndex(e => e.patrimonio === item.patrimonio);
+      if (i >= 0) dados[i] = item; else dados.push(item);
+      render();
+    }
+
+    /* ---------- Editar ---------- */
+    const $dlgEd = $("dlgEditar");
+
+    function ajustarCamposSumiu() {
+      const sumiu = $("edSumiu").checked;
+      $("edSumiuCampos").classList.toggle("hidden", !sumiu);
+      $("edBoNumWrap").classList.toggle("hidden", !(sumiu && $("edBo").checked));
+    }
+
+    function abrirEditar(pat) {
+      const e = dados.find(x => x.patrimonio === pat);
+      if (!e) return;
+      editando = pat;
+      $("edTitulo").textContent = `${e.patrimonio} — ${e.nome}`;
+      $("edInfo").textContent = [e.fabricante, e.modelo, e.serie && ("Série " + e.serie)].filter(Boolean).join(" · ");
+      $("edResp").value = e.responsavel || "";
+      $("edSumiu").checked = e.sumiu;
+      $("edBo").checked = e.bo_realizado;
+      $("edBoNum").value = e.bo_numero || "";
+      $("edObs").value = e.obs || "";
+      $("edSumiuEm").textContent = e.sumiu && e.sumiu_em ? "Marcado como sumiu em " + e.sumiu_em : "";
+      $("edErro").classList.add("hidden");
+      ajustarCamposSumiu();
+      $dlgEd.showModal();
+      $("edResp").focus();
+    }
+
+    $("edSumiu").addEventListener("change", ajustarCamposSumiu);
+    $("edBo").addEventListener("change", ajustarCamposSumiu);
+    $("edCancelar").addEventListener("click", () => $dlgEd.close());
+
+    $("formEditar").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const base = "/api/spe/equipamentos/" + encodeURIComponent(editando);
+      try {
+        await api("PUT", base + "/responsavel", { responsavel: $("edResp").value.trim() });
+        const item = await api("PUT", base + "/sumiu", {
+          sumiu: $("edSumiu").checked,
+          bo_realizado: $("edBo").checked,
+          bo_numero: $("edBoNum").value.trim(),
+          obs: $("edObs").value.trim(),
+        });
+        atualizarItem(item);
+        $dlgEd.close();
+      } catch (err) {
+        $("edErro").textContent = err.message;
+        $("edErro").classList.remove("hidden");
+      }
+    });
+
+    /* ---------- Adicionar ---------- */
+    const $dlgAdd = $("dlgAdd");
+    $("adTipo").innerHTML = TIPOS_APARELHO
+      .map((t, i) => `<option value="${i}">${esc((t[0] + " " + t[1]).trim())}</option>`)
+      .join("") + '<option value="outro">Outro…</option>';
+
+    $("adTipo").addEventListener("change", () => {
+      $("adOutroWrap").classList.toggle("hidden", $("adTipo").value !== "outro");
+    });
+
+    $("btnAdicionar").addEventListener("click", () => {
+      $("formAdd").reset();
+      $("adOutroWrap").classList.add("hidden");
+      $("adErro").classList.add("hidden");
+      $dlgAdd.showModal();
+      $("adPat").focus();
+    });
+    $("adCancelar").addEventListener("click", () => $dlgAdd.close());
+
+    $("formAdd").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      let equipamento, tipo;
+      if ($("adTipo").value === "outro") {
+        equipamento = $("adEquip").value.trim();
+        tipo = $("adVariacao").value.trim();
+      } else {
+        [equipamento, tipo] = TIPOS_APARELHO[Number($("adTipo").value)];
+      }
+      try {
+        const item = await api("POST", "/api/spe/equipamentos", {
+          patrimonio: $("adPat").value.trim(),
+          equipamento, tipo,
+          fabricante: $("adFab").value.trim(),
+          modelo: $("adModelo").value.trim(),
+          serie: $("adSerie").value.trim(),
+          ano: $("adAno").value.trim(),
+          responsavel: $("adResp").value.trim(),
+        });
+        atualizarItem(item);
+        $dlgAdd.close();
+      } catch (err) {
+        $("adErro").textContent = err.message;
+        $("adErro").classList.remove("hidden");
+      }
+    });
+
+    /* ---------- Eventos gerais ---------- */
+    $filtros.addEventListener("click", ev => {
+      const b = ev.target.closest(".spe__chip");
+      if (!b) return;
+      grupoAtual = Number(b.dataset.i);
+      montarFiltros();
+      render();
+    });
+    $corpo.addEventListener("click", ev => {
+      const tr = ev.target.closest("tr[data-pat]");
+      if (tr) abrirEditar(tr.dataset.pat);
+    });
+    $busca.addEventListener("input", render);
+    $semResp.addEventListener("change", render);
+
+    montarFiltros();
+    api("GET", "/api/spe/equipamentos")
+      .then(d => { dados = d; render(); })
+      .catch(err => { $conta.textContent = "Erro ao carregar os equipamentos: " + err.message; });
+  </script>
+</body>
+</html>
